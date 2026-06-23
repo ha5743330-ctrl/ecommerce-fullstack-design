@@ -6,23 +6,18 @@ node_modules/
 .env.local
 .env.*.local
 
-# Build output
+# Build output (Inhe hatana nahi hai, yahan rehne dein)
 dist/
 build/
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
-yarn-test.log*
 
 # OS specific files
 .DS_Store
 Thumbs.db
 
-# IDEs (VS Code)
+# IDEs
 .vscode/
 .idea/
-
-# Firebase (Agar local emulator use kar rahe hain)
-.firebase/
-firebase-debug.log
