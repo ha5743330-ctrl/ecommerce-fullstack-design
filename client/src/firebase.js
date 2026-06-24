@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth"; // Ye line add karein
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
@@ -12,4 +13,5 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app); // <--- Ye export zaroori hai!
 const analytics = getAnalytics(app);
