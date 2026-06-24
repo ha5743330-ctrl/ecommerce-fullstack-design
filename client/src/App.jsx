@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
-import { auth, db } from "./firebase"; // db import karein
+import { auth, db } from "./firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { CartProvider } from "./context/CartContext.jsx";
 import Navbar from "./components/Navbar.jsx";
@@ -40,27 +40,25 @@ export default function App() {
     <CartProvider>
       <Toaster position="top-right" />
       <Navbar />
-      // App.jsx mein Routes wala hissa aise change karein:
+      
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/products" element={<ProductListing />} />
+        <Route path="/products/:id" element={<ProductDetails />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/signup" element={<Signup />} /> 
+        <Route path="/login" element={<Login />} />
+        
+        <Route path="/checkout" element={
+          <ProtectedRoute loading={loading}> <Checkout /> </ProtectedRoute>
+        } />
 
-<Routes>
-  <Route path="/" element={<Home />} />
-  <Route path="/products" element={<ProductListing />} />
-  <Route path="/products/:id" element={<ProductDetails />} />
-  <Route path="/cart" element={<Cart />} />
-  <Route path="/signup" element={<Signup />} /> 
-  <Route path="/login" element={<Login />} />
-  
-  <Route path="/checkout" element={
-    <ProtectedRoute loading={loading}> <Checkout /> </ProtectedRoute>
-  } />
-
-  {/* Admin Route - Ab ye perfectly protected hai */}
-  <Route path="/admin" element={
-    <ProtectedRoute adminOnly={true} userRole={userRole} loading={loading}>
-      <Admin />
-    </ProtectedRoute>
-  } />
-</Routes>
+        <Route path="/admin" element={
+          <ProtectedRoute adminOnly={true} userRole={userRole} loading={loading}>
+            <Admin />
+          </ProtectedRoute>
+        } />
+      </Routes>
     </CartProvider>
   );
 }
