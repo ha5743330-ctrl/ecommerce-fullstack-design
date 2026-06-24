@@ -69,3 +69,7 @@ export default function Admin() {
     </div>
   );
 }
+console.log("Admin Status:", isAdmin, "Loading:", loading);
+
+if (loading) return <div>Loading...</div>;
+if (!isAdmin) return <div className="text-red-500 font-bold p-10">Access Denied!</div>;
