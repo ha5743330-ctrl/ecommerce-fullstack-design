@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
+import { auth, db } from "./firebase"; // db import karein
+import { doc, getDoc } from "firebase/firestore";
 import { CartProvider } from "./context/CartContext.jsx";
 import Navbar from "./components/Navbar.jsx";
 import Home from "./pages/Home.jsx";
@@ -10,10 +12,30 @@ import Cart from "./pages/Cart.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Signup from "./pages/Signup.jsx";
 import Login from "./pages/Login.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx"; // ProtectedRoute import kiya
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Admin from "./pages/Admin.jsx";
 
 export default function App() {
+  const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setUserRole(userDoc.data().role);
+        }
+      } else {
+        setUserRole(null);
+      }
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+
   return (
     <CartProvider>
       <Toaster position="top-right" />
@@ -23,19 +45,19 @@ export default function App() {
         <Route path="/products" element={<ProductListing />} />
         <Route path="/products/:id" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />
-        
-        {/* Protected Checkout Route */}
-        <Route 
-          path="/checkout" 
-          element={
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          } 
-        />
-        <Route path="/admin" element={<Admin />} />
         <Route path="/signup" element={<Signup />} /> 
         <Route path="/login" element={<Login />} />
+        
+        <Route path="/checkout" element={
+          <ProtectedRoute> <Checkout /> </ProtectedRoute>
+        } />
+
+        {/* Updated Admin Route */}
+        <Route path="/admin" element={
+          <ProtectedRoute adminOnly={true} userRole={userRole}>
+            <Admin />
+          </ProtectedRoute>
+        } />
       </Routes>
     </CartProvider>
   );
