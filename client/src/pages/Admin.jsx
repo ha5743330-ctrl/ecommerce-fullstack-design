@@ -8,7 +8,8 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState("orders");
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
-  const [newProduct, setNewProduct] = useState({ name: "", price: "", image: "", category: "" });
+  // Description add kar di hai state mein
+  const [newProduct, setNewProduct] = useState({ name: "", price: "", image: "", category: "", description: "" });
   const [editingProduct, setEditingProduct] = useState(null);
 
   useEffect(() => {
@@ -26,9 +27,14 @@ export default function Admin() {
   };
 
   const addProduct = async () => {
-    if (!newProduct.name || !newProduct.price || !newProduct.category || !newProduct.image) return alert("Fill all fields!");
-    await addDoc(collection(db, "products"), { ...newProduct, price: Number(newProduct.price) });
-    setNewProduct({ name: "", price: "", image: "", category: "" });
+    if (!newProduct.name || !newProduct.price || !newProduct.category || !newProduct.image || !newProduct.description) 
+      return alert("Please fill all fields, including description!");
+      
+    await addDoc(collection(db, "products"), { 
+      ...newProduct, 
+      price: Number(newProduct.price) 
+    });
+    setNewProduct({ name: "", price: "", image: "", category: "", description: "" });
     fetchProducts();
   };
 
@@ -39,6 +45,7 @@ export default function Admin() {
       price: Number(editingProduct.price),
       image: editingProduct.image,
       category: editingProduct.category,
+      description: editingProduct.description, // Description update logic
     });
     setEditingProduct(null);
     fetchProducts();
@@ -64,20 +71,18 @@ export default function Admin() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-black mb-8">Admin Panel</h1>
         
-        {/* Tabs */}
         <div className="flex gap-4 mb-8">
           <button onClick={() => setActiveTab("orders")} className={`px-8 py-2 rounded-xl font-bold ${activeTab === "orders" ? "bg-blue-600 text-white" : "bg-white shadow"}`}>ORDERS</button>
           <button onClick={() => setActiveTab("products")} className={`px-8 py-2 rounded-xl font-bold ${activeTab === "products" ? "bg-blue-600 text-white" : "bg-white shadow"}`}>PRODUCTS</button>
         </div>
 
-        {/* Orders View */}
         {activeTab === "orders" && (
           <div className="grid gap-4">
             {orders.map((o) => (
               <div key={o.id} className="bg-white p-6 rounded-xl shadow flex justify-between items-center">
                 <div>
                   <p className="font-bold">{o.userEmail}</p>
-                  <p className="text-gray-500">Status: {o.status}</p>
+                  <p className="text-gray-500">Status: {o.status || "Pending"}</p>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => updateOrderStatus(o.id, "Shipped")} className="px-4 py-2 bg-green-100 rounded-lg">Mark Shipped</button>
@@ -88,10 +93,10 @@ export default function Admin() {
           </div>
         )}
 
-        {/* Products View */}
         {activeTab === "products" && (
           <div>
-            <div className="bg-white p-6 rounded-2xl shadow mb-8 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Add Product Form */}
+            <div className="bg-white p-6 rounded-2xl shadow mb-8 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               <input placeholder="Name" className="border p-2 rounded" onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} value={newProduct.name} />
               <input type="number" placeholder="Price" className="border p-2 rounded" onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} value={newProduct.price} />
               <input placeholder="Image URL" className="border p-2 rounded" onChange={(e) => setNewProduct({...newProduct, image: e.target.value})} value={newProduct.image} />
@@ -99,9 +104,11 @@ export default function Admin() {
                 <option value="">Select Category</option>
                 <option>Electronics</option><option>Clothing</option><option>Accessories</option><option>Footwear</option><option>Travel</option>
               </select>
-              <button onClick={addProduct} className="lg:col-span-4 bg-blue-600 text-white p-2 rounded-lg font-bold">Add Product</button>
+              <input placeholder="Description" className="border p-2 rounded lg:col-span-2" onChange={(e) => setNewProduct({...newProduct, description: e.target.value})} value={newProduct.description} />
+              <button onClick={addProduct} className="lg:col-span-3 bg-blue-600 text-white p-3 rounded-lg font-bold">Add New Product</button>
             </div>
 
+            {/* Product List */}
             <div className="grid md:grid-cols-3 gap-6">
               {products.map((p) => (
                 <div key={p.id} className="bg-white p-4 rounded-xl shadow border">
@@ -109,6 +116,7 @@ export default function Admin() {
                   <h3 className="font-bold mt-2">{p.name}</h3>
                   <p className="text-sm text-gray-500">{p.category}</p>
                   <p className="font-bold text-blue-600">${p.price}</p>
+                  <p className="text-xs text-gray-400 mt-1 truncate">{p.description}</p>
                   <div className="flex gap-2 mt-4">
                     <button onClick={() => setEditingProduct(p)} className="flex-1 bg-yellow-500 text-white py-1 rounded">Edit</button>
                     <button onClick={() => deleteProduct(p.id)} className="flex-1 bg-red-500 text-white py-1 rounded">Delete</button>
@@ -130,6 +138,7 @@ export default function Admin() {
               <select className="border p-2 rounded" value={editingProduct.category} onChange={(e) => setEditingProduct({...editingProduct, category: e.target.value})}>
                 <option>Electronics</option><option>Clothing</option><option>Accessories</option><option>Footwear</option><option>Travel</option>
               </select>
+              <textarea className="border p-2 rounded" placeholder="Description" value={editingProduct.description || ""} onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})} />
               <div className="flex gap-2 mt-2">
                 <button type="submit" className="flex-1 bg-green-600 text-white p-2 rounded">Save</button>
                 <button type="button" onClick={() => setEditingProduct(null)} className="flex-1 bg-gray-400 text-white p-2 rounded">Cancel</button>
