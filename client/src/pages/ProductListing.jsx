@@ -11,6 +11,7 @@ export default function ProductListing() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState("default"); // New: Sorting state
   const { addToCart, searchQuery } = useCart(); 
   const location = useLocation();
 
@@ -18,13 +19,9 @@ export default function ProductListing() {
     const fetchData = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "products"));
-        const data = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const data = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setProducts(data);
       } catch (error) {
-        console.error("Error: ", error);
         toast.error("Failed to load products");
       } finally {
         setLoading(false);
@@ -33,81 +30,59 @@ export default function ProductListing() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const categoryParam = queryParams.get("category");
-    setSelectedCategory(categoryParam || "All");
-  }, [location.search]);
-
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
-    const matchesSearch = product.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const handleAddToCart = (product) => {
-    addToCart(product);
-    toast.success(`${product.name} added!`);
-  };
-
-  if (loading) return <div className="text-center py-20 font-bold text-gray-600">Loading Products...</div>;
+  // Filter & Sort Logic
+  const filteredProducts = products
+    .filter(p => (selectedCategory === "All" || p.category === selectedCategory) && 
+                 p.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      if (sortOrder === "low") return a.price - b.price;
+      if (sortOrder === "high") return b.price - a.price;
+      return 0;
+    });
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+    <div className="bg-gray-50 min-h-screen py-10 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-4">
-          <h1 className="text-3xl font-extrabold text-gray-900">
-            {selectedCategory === "All" ? "Trending Products" : selectedCategory}
-          </h1>
-          <div className="flex flex-wrap gap-2 bg-white p-1.5 rounded-xl border border-gray-100 shadow-sm">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                  selectedCategory === cat ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+        {/* Header & Filter Controls */}
+        <div className="flex flex-col md:flex-row justify-between mb-10 gap-6">
+          <h1 className="text-4xl font-black text-gray-900">{selectedCategory} Products</h1>
+          
+          <div className="flex flex-wrap gap-3">
+             <select onChange={(e) => setSortOrder(e.target.value)} className="bg-white border p-2 rounded-lg text-sm">
+                <option value="default">Sort by</option>
+                <option value="low">Price: Low to High</option>
+                <option value="high">Price: High to Low</option>
+             </select>
           </div>
         </div>
 
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <p className="text-gray-500">No products found matching your criteria.</p>
-          </div>
+        {/* Categories Tab */}
+        <div className="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm border w-fit">
+            {CATEGORIES.map(cat => (
+                <button key={cat} onClick={() => setSelectedCategory(cat)} 
+                    className={`px-6 py-2 rounded-xl font-bold transition ${selectedCategory === cat ? "bg-blue-600 text-white" : "hover:bg-gray-100"}`}>
+                    {cat}
+                </button>
+            ))}
+        </div>
+
+        {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[1,2,3,4].map(n => <div key={n} className="h-80 bg-gray-200 animate-pulse rounded-2xl"></div>)}
+            </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all border border-gray-100 flex flex-col overflow-hidden group">
-                {/* Image Link */}
-                <Link to={`/products/${product.id}`} className="overflow-hidden">
-                  <img 
-                    src={product.image} 
-                    alt={product.name} 
-                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300" 
-                  />
+              <div key={product.id} className="bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all border p-3 group">
+                <Link to={`/products/${product.id}`}>
+                  <img src={product.image} className="w-full h-60 object-cover rounded-xl" />
                 </Link>
-                
-                <div className="p-5 flex flex-col flex-grow">
-                  <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{product.category}</span>
-                  {/* Name Link */}
-                  <Link to={`/products/${product.id}`}>
-                    <h3 className="text-md font-bold text-gray-800 mt-1 mb-4 hover:text-blue-600 transition-colors">
-                      {product.name}
-                    </h3>
-                  </Link>
-                  
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className="text-lg font-bold text-gray-900">${product.price}</span>
-                    <button 
-                      onClick={() => handleAddToCart(product)} 
-                      className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
-                    >
-                      Add
-                    </button>
+                <div className="p-2">
+                  <p className="text-xs font-bold text-gray-400 uppercase">{product.category}</p>
+                  <h3 className="font-bold text-gray-800 my-2">{product.name}</h3>
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-xl font-black text-blue-600">${product.price}</span>
+                    <button onClick={() => {addToCart(product); toast.success("Added!");}} className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-bold">Add</button>
                   </div>
                 </div>
               </div>
