@@ -7,11 +7,8 @@ export default function Admin() {
   const { isAdmin, loading } = useAdmin();
   const [orders, setOrders] = useState([]);
 
-  // Orders fetch karne ka function
-  const fetchOrders = async () => {
-    const querySnapshot = await getDocs(collection(db, "orders"));
-    setOrders(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-  };
+  // --- LOGIC YAHAN FUNCTION KE ANDAR HAI ---
+  console.log("Admin Status:", isAdmin, "Loading:", loading);
 
   useEffect(() => {
     if (isAdmin) {
@@ -19,19 +16,24 @@ export default function Admin() {
     }
   }, [isAdmin]);
 
-  // Status update karne ka function
+  const fetchOrders = async () => {
+    const querySnapshot = await getDocs(collection(db, "orders"));
+    setOrders(querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+  };
+
   const updateStatus = async (orderId, newStatus) => {
     try {
       const orderRef = doc(db, "orders", orderId);
       await updateDoc(orderRef, { status: newStatus });
       alert("Order status updated to: " + newStatus);
-      fetchOrders(); // List ko refresh karein taake UI update ho jaye
+      fetchOrders(); 
     } catch (error) {
       alert("Error updating status: " + error.message);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  // --- LOADING AUR ACCESS CHECK BHI FUNCTION KE ANDAR ---
+  if (loading) return <div className="p-10">Loading...</div>;
   if (!isAdmin) return <div className="text-red-500 font-bold p-10">Access Denied!</div>;
 
   return (
@@ -69,7 +71,3 @@ export default function Admin() {
     </div>
   );
 }
-console.log("Admin Status:", isAdmin, "Loading:", loading);
-
-if (loading) return <div>Loading...</div>;
-if (!isAdmin) return <div className="text-red-500 font-bold p-10">Access Denied!</div>;
