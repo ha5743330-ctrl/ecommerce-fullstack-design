@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth"; // Ye line add karein
 import { getAnalytics } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore"; 
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,3 +16,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app); // <--- Ye export zaroori hai!
 const analytics = getAnalytics(app);
+export const db = getFirestore(app);
