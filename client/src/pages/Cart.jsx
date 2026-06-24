@@ -1,9 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useCart } from "../context/CartContext.jsx"; // 👈 Context import kiya
+import { useCart } from "../context/CartContext.jsx"; 
 
 export default function Cart() {
-  // Destructure functions from context
   const { cartItems, updateQuantity, removeFromCart } = useCart(); 
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);

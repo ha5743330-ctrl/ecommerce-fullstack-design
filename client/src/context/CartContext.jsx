@@ -42,7 +42,6 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // Yahan ab 'setCartItems' add ho gaya hai
   return (
     <CartContext.Provider value={{ 
       cartItems, 

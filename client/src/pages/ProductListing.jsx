@@ -11,7 +11,7 @@ export default function ProductListing() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortOrder, setSortOrder] = useState("default"); // New: Sorting state
+  const [sortOrder, setSortOrder] = useState("default"); 
   const { addToCart, searchQuery } = useCart(); 
   const location = useLocation();
 

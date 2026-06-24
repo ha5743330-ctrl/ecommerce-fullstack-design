@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext.jsx";
-import { useAdmin } from "../hooks/useAdmin.js"; // Admin check ke liye
+import { useAdmin } from "../hooks/useAdmin.js"; 
 import toast from 'react-hot-toast';
 import { db } from "../firebase.js";
 import { doc, getDoc } from "firebase/firestore";
@@ -10,7 +10,7 @@ export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { isAdmin } = useAdmin(); // Check if user is admin
+  const { isAdmin } = useAdmin(); 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [qty, setQty] = useState(1);

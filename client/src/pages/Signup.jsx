@@ -13,7 +13,7 @@ export default function Signup() {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       alert("Account ban gaya!");
-      navigate("/"); // Home page par bhejo
+      navigate("/"); 
     } catch (error) {
       alert(error.message);
     }

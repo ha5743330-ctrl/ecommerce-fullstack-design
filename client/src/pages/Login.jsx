@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { auth, db } from "../firebase"; // 'db' import karna zaroori hai
+import { auth, db } from "../firebase"; 
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore"; // Firestore functions
+import { doc, getDoc } from "firebase/firestore"; 
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -13,25 +13,21 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // 1. Firebase Auth se login karein
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // 2. Firestore se user ka role check karein
       const userDoc = await getDoc(doc(db, "users", user.uid));
       
       if (userDoc.exists()) {
         const userData = userDoc.data();
         toast.success("Welcome back!");
 
-        // 3. Role ke hisaab se redirect karein
         if (userData.role === "admin") {
-          navigate("/admin"); // Agar admin hai
+          navigate("/admin"); 
         } else {
-          navigate("/"); // Agar normal user hai
+          navigate("/"); 
         }
       } else {
-        // Agar user ka record Firestore mein nahi hai (default user)
         navigate("/");
       }
     } catch (error) {

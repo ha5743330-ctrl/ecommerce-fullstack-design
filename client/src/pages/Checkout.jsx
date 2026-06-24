@@ -1,21 +1,20 @@
 import React, { useState } from "react";
 import { useCart } from "../context/CartContext.jsx";
-import { db, auth } from "../firebase.js"; // Firestore aur Auth import
-import { addDoc, collection } from "firebase/firestore"; // Firestore functions
-import toast from "react-hot-toast"; // Feedback ke liye
+import { db, auth } from "../firebase.js"; 
+import { addDoc, collection } from "firebase/firestore"; 
+import toast from "react-hot-toast"; 
 
 export default function Checkout() {
   const { cartItems, setCartItems } = useCart();
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // 1. Order Object create karein
       const orderData = {
         userId: auth.currentUser.uid,
         userEmail: auth.currentUser.email,
@@ -24,12 +23,9 @@ export default function Checkout() {
         createdAt: new Date(),
         status: "Pending"
       };
-
-      // 2. Firestore mein "orders" collection mein save karein
       await addDoc(collection(db, "orders"), orderData);
 
-      // 3. Success logic
-      setCartItems([]); // Cart clear karein
+      setCartItems([]); 
       setIsOrderPlaced(true);
       toast.success("Order Successfully Placed!");
     } catch (error) {
