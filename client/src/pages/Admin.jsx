@@ -9,7 +9,7 @@ export default function Admin() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [newProduct, setNewProduct] = useState({ name: "", price: "", image: "", category: "" });
-  const [editingProduct, setEditingProduct] = useState(null); // Edit modal state
+  const [editingProduct, setEditingProduct] = useState(null);
 
   useEffect(() => {
     if (isAdmin) { fetchOrders(); fetchProducts(); }
@@ -51,47 +51,67 @@ export default function Admin() {
     }
   };
 
-  if (loading) return <div className="p-20 text-center">Loading...</div>;
-  if (!isAdmin) return <div className="p-20 text-center text-red-600 font-bold">Access Denied!</div>;
+  const updateOrderStatus = async (orderId, newStatus) => {
+    await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+    fetchOrders();
+  };
+
+  if (loading) return <div className="p-20 text-center text-xl">Loading Admin Dashboard...</div>;
+  if (!isAdmin) return <div className="p-20 text-red-600 text-center text-2xl font-bold">Access Denied!</div>;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-black mb-8 text-gray-900">Admin Dashboard</h1>
+        <h1 className="text-4xl font-black mb-8">Admin Panel</h1>
         
+        {/* Tabs */}
         <div className="flex gap-4 mb-8">
-          {["orders", "products"].map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-8 py-2 rounded-xl font-bold ${activeTab === tab ? "bg-blue-600 text-white" : "bg-white shadow"}`}>
-              {tab.toUpperCase()}
-            </button>
-          ))}
+          <button onClick={() => setActiveTab("orders")} className={`px-8 py-2 rounded-xl font-bold ${activeTab === "orders" ? "bg-blue-600 text-white" : "bg-white shadow"}`}>ORDERS</button>
+          <button onClick={() => setActiveTab("products")} className={`px-8 py-2 rounded-xl font-bold ${activeTab === "products" ? "bg-blue-600 text-white" : "bg-white shadow"}`}>PRODUCTS</button>
         </div>
 
+        {/* Orders View */}
+        {activeTab === "orders" && (
+          <div className="grid gap-4">
+            {orders.map((o) => (
+              <div key={o.id} className="bg-white p-6 rounded-xl shadow flex justify-between items-center">
+                <div>
+                  <p className="font-bold">{o.userEmail}</p>
+                  <p className="text-gray-500">Status: {o.status}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => updateOrderStatus(o.id, "Shipped")} className="px-4 py-2 bg-green-100 rounded-lg">Mark Shipped</button>
+                  <button onClick={() => updateOrderStatus(o.id, "Delivered")} className="px-4 py-2 bg-blue-100 rounded-lg">Mark Delivered</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Products View */}
         {activeTab === "products" && (
           <div>
-            {/* Add Product Form */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm mb-8 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <input placeholder="Name" className="border p-3 rounded-lg" onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} value={newProduct.name} />
-              <input type="number" placeholder="Price" className="border p-3 rounded-lg" onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} value={newProduct.price} />
-              <input placeholder="Image URL" className="border p-3 rounded-lg" onChange={(e) => setNewProduct({...newProduct, image: e.target.value})} value={newProduct.image} />
-              <select className="border p-3 rounded-lg" onChange={(e) => setNewProduct({...newProduct, category: e.target.value})} value={newProduct.category}>
-                <option value="">Category</option>
-                <option>Electronics</option><option>Clothing</option><option>Accessories</option>
+            <div className="bg-white p-6 rounded-2xl shadow mb-8 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <input placeholder="Name" className="border p-2 rounded" onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} value={newProduct.name} />
+              <input type="number" placeholder="Price" className="border p-2 rounded" onChange={(e) => setNewProduct({...newProduct, price: e.target.value})} value={newProduct.price} />
+              <input placeholder="Image URL" className="border p-2 rounded" onChange={(e) => setNewProduct({...newProduct, image: e.target.value})} value={newProduct.image} />
+              <select className="border p-2 rounded" onChange={(e) => setNewProduct({...newProduct, category: e.target.value})} value={newProduct.category}>
+                <option value="">Select Category</option>
+                <option>Electronics</option><option>Clothing</option><option>Accessories</option><option>Footwear</option><option>Travel</option>
               </select>
-              <button onClick={addProduct} className="lg:col-span-4 bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700">Add New Product</button>
+              <button onClick={addProduct} className="lg:col-span-4 bg-blue-600 text-white p-2 rounded-lg font-bold">Add Product</button>
             </div>
 
-            {/* Product List */}
             <div className="grid md:grid-cols-3 gap-6">
               {products.map((p) => (
-                <div key={p.id} className="bg-white p-4 rounded-2xl shadow border">
-                  <img src={p.image} className="h-40 w-full object-cover rounded-xl mb-4" />
-                  <h3 className="font-bold text-lg">{p.name}</h3>
-                  <p className="text-sm text-gray-500 mb-2">{p.category}</p>
-                  <p className="text-blue-600 font-bold mb-4">${p.price}</p>
-                  <div className="flex gap-2">
-                    <button onClick={() => setEditingProduct(p)} className="flex-1 bg-yellow-500 text-white py-2 rounded-lg font-bold">Edit</button>
-                    <button onClick={() => deleteProduct(p.id)} className="flex-1 bg-red-500 text-white py-2 rounded-lg font-bold">Delete</button>
+                <div key={p.id} className="bg-white p-4 rounded-xl shadow border">
+                  <img src={p.image} className="h-40 w-full object-cover rounded" />
+                  <h3 className="font-bold mt-2">{p.name}</h3>
+                  <p className="text-sm text-gray-500">{p.category}</p>
+                  <p className="font-bold text-blue-600">${p.price}</p>
+                  <div className="flex gap-2 mt-4">
+                    <button onClick={() => setEditingProduct(p)} className="flex-1 bg-yellow-500 text-white py-1 rounded">Edit</button>
+                    <button onClick={() => deleteProduct(p.id)} className="flex-1 bg-red-500 text-white py-1 rounded">Delete</button>
                   </div>
                 </div>
               ))}
@@ -101,14 +121,17 @@ export default function Admin() {
 
         {/* Edit Modal */}
         {editingProduct && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <form onSubmit={updateProduct} className="bg-white p-8 rounded-2xl w-full max-w-md flex flex-col gap-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <form onSubmit={updateProduct} className="bg-white p-6 rounded-2xl w-full max-w-md flex flex-col gap-3">
               <h2 className="text-xl font-bold">Edit Product</h2>
               <input className="border p-2 rounded" value={editingProduct.name} onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})} />
               <input type="number" className="border p-2 rounded" value={editingProduct.price} onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})} />
               <input className="border p-2 rounded" value={editingProduct.image} onChange={(e) => setEditingProduct({...editingProduct, image: e.target.value})} />
-              <div className="flex gap-2">
-                <button type="submit" className="flex-1 bg-green-600 text-white p-2 rounded">Save Changes</button>
+              <select className="border p-2 rounded" value={editingProduct.category} onChange={(e) => setEditingProduct({...editingProduct, category: e.target.value})}>
+                <option>Electronics</option><option>Clothing</option><option>Accessories</option><option>Footwear</option><option>Travel</option>
+              </select>
+              <div className="flex gap-2 mt-2">
+                <button type="submit" className="flex-1 bg-green-600 text-white p-2 rounded">Save</button>
                 <button type="button" onClick={() => setEditingProduct(null)} className="flex-1 bg-gray-400 text-white p-2 rounded">Cancel</button>
               </div>
             </form>
